@@ -1,16 +1,12 @@
-### Hi there 👋
+### 📌 Hi, I'm Brandon.
 
-<!--
-**brandonsaldan/brandonsaldan** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+[![Linkedin Badge](https://img.shields.io/badge/Linkedin-blue?style=flat-square&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/brandonsaldan//)](https://www.linkedin.com/in/brandonsaldan/)
+[![Twitter Badge](https://img.shields.io/badge/Twitter-1ca0f1?style=flat-square&logo=twitter&logoColor=white&link=https://twitter.com/brandonsaldan)](https://twitter.com/brandonsaldan)
+[![Gmail Badge](https://img.shields.io/badge/Email-c14438?style=flat-square&logo=Gmail&logoColor=white&link=mailto:brandonmsaldan@gmail.com)](mailto:brandonmsaldan@gmail.com)
+----
+#### I'm a Business and Computer Science Student from Raleigh, NC.
+ 
+- 👨🏻‍💻 I’m currently working for [@luminantdesign](https://github.com/luminantdesign)
+- 🤔 Outside of development, I am passionate about finance, business, and entrepreneurship.
+- 💼 I’m pursuing a Bachelor of Science in Information Technology.
+- 📫 Please message me on Linkedin or email me with any questions.
