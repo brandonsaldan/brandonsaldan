@@ -6,7 +6,7 @@
 ----
 #### I'm a Business and Computer Science Student from Raleigh, NC.
  
-- 👨🏻‍💻 I’m currently working for [@luminantdesign](https://github.com/luminantdesign)
+- 👨🏻‍💻 I’m currently working for [@GoMainsail](https://github.com/GoMainsail)
 - 🤔 Outside of development, I am passionate about finance, business, football, and entrepreneurship.
 - 💼 I’m pursuing a Bachelor of Science in Information Technology.
 - 📫 Please message me on Linkedin or email me with any questions.
