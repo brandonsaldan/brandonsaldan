@@ -8,5 +8,5 @@
  
 - 💼 I’m currently working for [@GoMainsail](https://github.com/GoMainsail)
 - ⚡️ Outside of development, I am passionate about finance, business, football, and entrepreneurship.
-- 🎓 I’m pursuing a Bachelor of Science in Information Technology.
+- 🎓 I’m pursuing a Bachelor of Science in Cybersecurity.
 - 📫 Please message me on Linkedin or email me with any questions.
