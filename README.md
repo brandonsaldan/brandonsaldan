@@ -10,3 +10,5 @@
 - ⚡️ Outside of development, I am passionate about finance, business, football, and entrepreneurship.
 - 🎓 I’m pursuing a Bachelor of Science in Cybersecurity.
 - 📫 Please message me on Linkedin or email me with any questions.
+----
+![](https://komarev.com/ghpvc/?username=brandonsaldan&color=6A8AFF)
