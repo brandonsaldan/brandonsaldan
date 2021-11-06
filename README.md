@@ -1,7 +1,7 @@
 ````bash
 > help --info
 > Business and Computer Science student based in Levittown, PA.
-> Freshman at Bucks County Community College majoring in Cybersecurity.
+> Freshman at Bucks County Community College majoring in Business Administration.
 ````
 
 ````bash
