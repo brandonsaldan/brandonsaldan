@@ -12,4 +12,7 @@
 > mailto: brandonmsaldan@gmail.com
 ````
 
+<!--START_SECTION:waka-->
+<!--END_SECTION:waka-->
+
 ![](https://komarev.com/ghpvc/?username=brandonsaldan&color=6A8AFF)
