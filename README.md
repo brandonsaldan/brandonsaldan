@@ -13,6 +13,12 @@
 ````
 
 <!--START_SECTION:waka-->
+
+```text
+Vue.js       5 hrs 19 mins   █████████████████▓░░░░░░░   71.16 %
+Other        2 hrs 7 mins    ███████░░░░░░░░░░░░░░░░░░   28.35 %
+```
+
 <!--END_SECTION:waka-->
 
 ![](https://komarev.com/ghpvc/?username=brandonsaldan&color=6A8AFF)
