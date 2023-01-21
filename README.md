@@ -15,10 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```text
-From: 12 January 2023 - To: 19 January 2023
+From: 13 January 2023 - To: 20 January 2023
 
-Vue.js       5 hrs 20 mins   █████████████████▓░░░░░░░   71.16 %
-Other        2 hrs 7 mins    ███████░░░░░░░░░░░░░░░░░░   28.31 %
+Vue.js       7 hrs 9 mins    ████████████████▓░░░░░░░░   67.08 %
+Other        2 hrs 24 mins   █████▓░░░░░░░░░░░░░░░░░░░   22.50 %
 ```
 
 <!--END_SECTION:waka-->
