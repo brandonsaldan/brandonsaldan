@@ -15,11 +15,11 @@
 <!--START_SECTION:waka-->
 
 ```text
-From: 17 January 2023 - To: 24 January 2023
+From: 18 January 2023 - To: 25 January 2023
 
-Vue.js       7 hrs 33 mins   ████████████████████▓░░░░   82.65 %
-Markdown     1 hr            ██▓░░░░░░░░░░░░░░░░░░░░░░   10.95 %
-Other        19 mins         █░░░░░░░░░░░░░░░░░░░░░░░░   03.49 %
+Vue.js       4 hrs 36 mins   ██████████████████▓░░░░░░   74.65 %
+Markdown     1 hr            ████░░░░░░░░░░░░░░░░░░░░░   16.23 %
+Other        19 mins         █▒░░░░░░░░░░░░░░░░░░░░░░░   05.25 %
 ```
 
 <!--END_SECTION:waka-->
