@@ -15,11 +15,11 @@
 <!--START_SECTION:waka-->
 
 ```text
-From: 24 January 2023 - To: 31 January 2023
+From: 25 January 2023 - To: 01 February 2023
 
-Vue.js       0 secs          ██████████▓░░░░░░░░░░░░░░   42.37 %
-JavaScript   0 secs          ██████████░░░░░░░░░░░░░░░   39.80 %
-Other        0 secs          ████▒░░░░░░░░░░░░░░░░░░░░   17.83 %
+Vue.js       52 mins         █████████████████▓░░░░░░░   70.00 %
+JavaScript   19 mins         ██████▓░░░░░░░░░░░░░░░░░░   26.22 %
+Other        2 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   03.40 %
 ```
 
 <!--END_SECTION:waka-->
