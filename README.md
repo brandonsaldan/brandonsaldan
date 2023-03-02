@@ -15,7 +15,7 @@
 <!--START_SECTION:waka-->
 
 ```text
-From: 21 February 2023 - To: 28 February 2023
+From: 22 February 2023 - To: 01 March 2023
 
 JSON         2 hrs 6 mins    ███████████▓░░░░░░░░░░░░░   46.54 %
 Vue.js       1 hr 47 mins    ██████████░░░░░░░░░░░░░░░   39.37 %
