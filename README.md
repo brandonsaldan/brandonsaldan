@@ -15,12 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```text
-From: 23 February 2023 - To: 02 March 2023
+From: 24 February 2023 - To: 03 March 2023
 
-JSON         1 hr 21 mins    ███████████░░░░░░░░░░░░░░   44.49 %
-Vue.js       1 hr 6 mins     █████████░░░░░░░░░░░░░░░░   36.62 %
-Markdown     25 mins         ███▒░░░░░░░░░░░░░░░░░░░░░   13.82 %
-Other        7 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   04.24 %
+Vue.js   17 mins         ████████████████▓░░░░░░░░   66.38 %
+JSON     8 mins          ████████▒░░░░░░░░░░░░░░░░   33.62 %
 ```
 
 <!--END_SECTION:waka-->
