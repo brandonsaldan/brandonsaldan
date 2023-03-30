@@ -15,11 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```text
-From: 21 March 2023 - To: 28 March 2023
+From: 22 March 2023 - To: 29 March 2023
 
-JavaScript   19 hrs 8 mins   ███████████████████████▓░   95.19 %
-Git Config   29 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.47 %
-Other        27 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.29 %
+JavaScript   16 hrs 33 mins  ███████████████████████▓░   95.29 %
+Other        27 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.65 %
 ```
 
 <!--END_SECTION:waka-->
