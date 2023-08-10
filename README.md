@@ -15,10 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 01 August 2023 - To: 08 August 2023
+From: 02 August 2023 - To: 09 August 2023
 
-JavaScript   9 hrs 59 mins   ████████████████░░░░░░░░░   63.85 %
-TypeScript   2 hrs 39 mins   ████▒░░░░░░░░░░░░░░░░░░░░   17.00 %
+JavaScript   10 hrs          ████████████████░░░░░░░░░   63.86 %
+TypeScript   2 hrs 39 mins   ████▒░░░░░░░░░░░░░░░░░░░░   16.99 %
 MDX          2 hrs 15 mins   ███▓░░░░░░░░░░░░░░░░░░░░░   14.41 %
 CSS          17 mins         ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.84 %
 Other        8 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.92 %
