@@ -15,13 +15,11 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 05 August 2023 - To: 12 August 2023
+From: 06 August 2023 - To: 13 August 2023
 
-MDX          1 hr 55 mins    ███████████▒░░░░░░░░░░░░░   45.36 %
-JavaScript   1 hr 20 mins    ████████░░░░░░░░░░░░░░░░░   31.45 %
-TypeScript   47 mins         ████▓░░░░░░░░░░░░░░░░░░░░   18.65 %
-Git Config   3 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.52 %
-Other        3 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.31 %
+JavaScript   44 mins         █████████████████████▒░░░   84.77 %
+MDX          6 mins          ███░░░░░░░░░░░░░░░░░░░░░░   12.66 %
+TypeScript   1 min           ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.57 %
 ```
 
 <!--END_SECTION:waka-->
