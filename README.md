@@ -15,13 +15,9 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 01 February 2024 - To: 08 February 2024
+From: 02 February 2024 - To: 09 February 2024
 
-Python       27 mins         ██████████▓░░░░░░░░░░░░░░   42.24 %
-JavaScript   21 mins         ████████░░░░░░░░░░░░░░░░░   32.33 %
-Text         15 mins         ██████░░░░░░░░░░░░░░░░░░░   24.19 %
-JSON         0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.65 %
-Other        0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.59 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
