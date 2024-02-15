@@ -1,7 +1,7 @@
 ````bash
 > help --info
-> Business and Computer Science student based in Levittown, PA.
-> Freshman at Wake Technical Community College majoring in Business Administration.
+> Business and Computer Science student based in Chapel Hill, NC.
+> Sophomore at Wake Technical Community College majoring in Business Administration.
 ````
 
 ````bash
