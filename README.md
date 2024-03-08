@@ -15,13 +15,9 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 28 February 2024 - To: 06 March 2024
+From: 29 February 2024 - To: 07 March 2024
 
-C#           12 mins         ██████████████████████▓░░   90.12 %
-Git Config   1 min           ██░░░░░░░░░░░░░░░░░░░░░░░   08.16 %
-JavaScript   0 secs          ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.75 %
-Other        0 secs          ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.73 %
-Python       0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.24 %
+C#   12 mins         █████████████████████████   100.00 %
 ```
 
 <!--END_SECTION:waka-->
