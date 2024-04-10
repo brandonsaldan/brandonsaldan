@@ -15,13 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 01 April 2024 - To: 08 April 2024
+From: 02 April 2024 - To: 09 April 2024
 
-C#           1 hr 58 mins    ██████████████████▒░░░░░░   73.81 %
-JavaScript   36 mins         █████▓░░░░░░░░░░░░░░░░░░░   22.63 %
-Text         5 mins          ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.23 %
-Git Config   0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.20 %
-CSS          0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.08 %
+C#           36 mins         ████████████████████████▒   97.38 %
+JavaScript   0 secs          ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.62 %
 ```
 
 <!--END_SECTION:waka-->
