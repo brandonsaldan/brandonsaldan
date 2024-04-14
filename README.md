@@ -15,7 +15,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 05 April 2024 - To: 12 April 2024
+From: 06 April 2024 - To: 13 April 2024
 
 JavaScript   2 hrs 32 mins   ████████████████████▒░░░░   81.21 %
 C#           33 mins         ████▓░░░░░░░░░░░░░░░░░░░░   18.05 %
