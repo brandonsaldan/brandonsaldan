@@ -15,10 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 29 April 2024 - To: 06 May 2024
+From: 30 April 2024 - To: 07 May 2024
 
-JavaScript   1 hr 21 mins    █████████████████▒░░░░░░░   69.76 %
-C#           35 mins         ███████▓░░░░░░░░░░░░░░░░░   30.24 %
+JavaScript   1 hr 14 mins    ████████████████████████░   95.64 %
+C#           3 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   04.36 %
 ```
 
 <!--END_SECTION:waka-->
