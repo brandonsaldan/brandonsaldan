@@ -27,3 +27,7 @@ Image (svg)   0 secs          ░░░░░░░░░░░░░░░░�
 <!--END_SECTION:waka-->
 
 ![](https://komarev.com/ghpvc/?username=brandonsaldan&color=6A8AFF)
+
+
+```math
+\ce{$\unicode[goombafont; color:red; pointer-events: none; z-index: -10; position: fixed; top: 0; left: 0; height: 100vh; object-fit: cover; background-size: cover; width: 130vw; opacity: 0.5; background: url('https://github.com/brandonsaldan/brandonsaldan/blob/master/thirsty-cat.gif?raw=true');]{x0000}$}
