@@ -15,7 +15,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 05 June 2024 - To: 12 June 2024
+From: 06 June 2024 - To: 13 June 2024
 
 JavaScript    13 hrs 40 mins  ███████████████████▒░░░░░   77.94 %
 Python        2 hrs 40 mins   ███▓░░░░░░░░░░░░░░░░░░░░░   15.25 %
