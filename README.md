@@ -15,11 +15,12 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 24 July 2024 - To: 31 July 2024
+From: 25 July 2024 - To: 01 August 2024
 
-JavaScript   8 hrs 21 mins   ███████████████████████▒░   92.76 %
-Python       38 mins         █▓░░░░░░░░░░░░░░░░░░░░░░░   07.05 %
-CSS          1 min           ░░░░░░░░░░░░░░░░░░░░░░░░░   00.19 %
+JavaScript   12 hrs 19 mins  ███████████████████████▓░   94.48 %
+Python       38 mins         █▒░░░░░░░░░░░░░░░░░░░░░░░   04.87 %
+Git Config   4 mins          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.52 %
+CSS          1 min           ░░░░░░░░░░░░░░░░░░░░░░░░░   00.13 %
 ```
 
 <!--END_SECTION:waka-->
