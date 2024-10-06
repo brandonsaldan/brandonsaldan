@@ -15,11 +15,10 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 27 September 2024 - To: 04 October 2024
+From: 28 September 2024 - To: 05 October 2024
 
-JavaScript   23 hrs 7 mins   ███████████████████████▓░   95.19 %
-CSS          1 hr 6 mins     █░░░░░░░░░░░░░░░░░░░░░░░░   04.54 %
-Git Config   3 mins          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.24 %
+JavaScript   19 hrs 53 mins  ████████████████████████░   96.52 %
+CSS          42 mins         █░░░░░░░░░░░░░░░░░░░░░░░░   03.46 %
 Text         0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.01 %
 YAML         0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.01 %
 ```
