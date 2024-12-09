@@ -15,13 +15,9 @@
 <!--START_SECTION:waka-->
 
 ```txt
-From: 29 November 2024 - To: 06 December 2024
+From: 01 December 2024 - To: 08 December 2024
 
-JavaScript   5 hrs 13 mins   █████████████████░░░░░░░░   68.02 %
-JSON         1 hr 36 mins    █████▒░░░░░░░░░░░░░░░░░░░   21.02 %
-Other        27 mins         █▒░░░░░░░░░░░░░░░░░░░░░░░   05.94 %
-Markdown     14 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.10 %
-TOML         7 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.52 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
