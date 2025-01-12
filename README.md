@@ -1,6 +1,6 @@
 ````bash
 > help --info
-> Business and Computer Science student based in Chapel Hill, NC.
+> Business and Computer Science student based in Charlotte, NC.
 > Junior at the University of North Carolina at Charlotte majoring in Management Information Systems.
 ````
 
