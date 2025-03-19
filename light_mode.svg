@@ -15,7 +15,7 @@ size-adjust: 109%;
 .cc {fill: #c2cfde;}
 text, tspan {white-space: pre;}
 </style>
-<rect width="985px" height="530px" fill="#f6f8fa" rx="15"/>
+<rect width="985px" height="690px" fill="#f6f8fa" rx="15"/>
 <text x="15" y="30" fill="#24292f" class="ascii">
 <tspan x="15" y="30">                             ***########**                  </tspan>
 <tspan x="15" y="50">                          =**#%%%%%%#####**+=-:             </tspan>
