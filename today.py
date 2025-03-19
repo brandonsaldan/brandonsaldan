@@ -107,111 +107,52 @@ def graph_repos_stars(count_type, owner_affiliation, cursor=None, add_loc=0, del
 
 
 def recursive_loc(owner, repo_name, data, cache_comment, addition_total=0, deletion_total=0, my_commits=0, cursor=None):
-    addition_total = addition_total
-    deletion_total = deletion_total
-    my_commits = my_commits
-    current_cursor = cursor
-    has_next_page = True
-    
-    while has_next_page:
-        query_count('recursive_loc')
-        time.sleep(1.5)
-        
-        query = '''
-        query ($repo_name: String!, $owner: String!, $cursor: String) {
-            repository(name: $repo_name, owner: $owner) {
-                defaultBranchRef {
-                    target {
-                        ... on Commit {
-                            history(first: 100, after: $cursor) {
-                                totalCount
-                                edges {
-                                    node {
-                                        ... on Commit {
-                                            committedDate
-                                        }
-                                        author {
-                                            user {
-                                                id
-                                            }
-                                        }
-                                        deletions
-                                        additions
+    """
+    Uses GitHub's GraphQL v4 API and cursor pagination to fetch 100 commits from a repository at a time
+    """
+    query_count('recursive_loc')
+    query = '''
+    query ($repo_name: String!, $owner: String!, $cursor: String) {
+        repository(name: $repo_name, owner: $owner) {
+            defaultBranchRef {
+                target {
+                    ... on Commit {
+                        history(first: 100, after: $cursor) {
+                            totalCount
+                            edges {
+                                node {
+                                    ... on Commit {
+                                        committedDate
                                     }
+                                    author {
+                                        user {
+                                            id
+                                        }
+                                    }
+                                    deletions
+                                    additions
                                 }
-                                pageInfo {
-                                    endCursor
-                                    hasNextPage
-                                }
+                            }
+                            pageInfo {
+                                endCursor
+                                hasNextPage
                             }
                         }
                     }
                 }
             }
-        }'''
-        
-        variables = {'repo_name': repo_name, 'owner': owner, 'cursor': current_cursor}
-        
-        max_retries = 3
-        retry_count = 0
-        retry_delay = 5
-        
-        while retry_count < max_retries:
-            try:
-                request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
-                if request.status_code == 200:
-                    break
-                else:
-                    retry_count += 1
-                    print(f"Request failed with status {request.status_code}, retrying {retry_count}/{max_retries}...")
-                    time.sleep(retry_delay * retry_count)
-            except Exception as e:
-                retry_count += 1
-                print(f"Request error: {str(e)}, retrying {retry_count}/{max_retries}...")
-                time.sleep(retry_delay * retry_count)
-        
-        if retry_count == max_retries:
-            print(f"Failed to process repository {owner}/{repo_name} after {max_retries} retries.")
-            return addition_total, deletion_total, my_commits
-            
-        if request.status_code != 200 or 'data' not in request.json() or request.json()['data'] is None:
-            print(f"Error response for {owner}/{repo_name}: {request.status_code}")
-            return addition_total, deletion_total, my_commits
-        
-        repo_data = request.json()['data']['repository']
-        if repo_data['defaultBranchRef'] is None:
-            return 0
-            
-        history = repo_data['defaultBranchRef']['target']['history']
-        
-        for node in history['edges']:
-            if node['node']['author']['user'] == OWNER_ID:
-                my_commits += 1
-                addition_total += node['node']['additions']
-                deletion_total += node['node']['deletions']
-        
-        has_next_page = history['pageInfo']['hasNextPage']
-        if has_next_page:
-            current_cursor = history['pageInfo']['endCursor']
-    
-    return addition_total, deletion_total, my_commits
-
-
-def loc_counter_one_repo(owner, repo_name, data, cache_comment, history, addition_total, deletion_total, my_commits):
-    """
-    Process a single page of commit history
-    """
-    # Process commits in this page
-    for node in history['edges']:
-        if node['node']['author']['user'] == OWNER_ID:
-            my_commits += 1
-            addition_total += node['node']['additions']
-            deletion_total += node['node']['deletions']
-
-    if history['edges'] == [] or not history['pageInfo']['hasNextPage']:
-        return addition_total, deletion_total, my_commits
-    
-    return recursive_loc(owner, repo_name, data, cache_comment, addition_total, deletion_total, my_commits, history['pageInfo']['endCursor'])
+        }
+    }'''
+    variables = {'repo_name': repo_name, 'owner': owner, 'cursor': cursor}
+    request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS) # I cannot use simple_request(), because I want to save the file before raising Exception
+    if request.status_code == 200:
+        if request.json()['data']['repository']['defaultBranchRef'] != None: # Only count commits if repo isn't empty
+            return loc_counter_one_repo(owner, repo_name, data, cache_comment, request.json()['data']['repository']['defaultBranchRef']['target']['history'], addition_total, deletion_total, my_commits)
+        else: return 0
+    force_close_file(data, cache_comment) # saves what is currently in the file before this program crashes
+    if request.status_code == 403:
+        raise Exception('Too many requests in a short amount of time!\nYou\'ve hit the non-documented anti-abuse limit!')
+    raise Exception('recursive_loc() has failed with a', request.status_code, request.text, QUERY_COUNT)
 
 
 def loc_counter_one_repo(owner, repo_name, data, cache_comment, history, addition_total, deletion_total, my_commits):
@@ -506,7 +447,7 @@ if __name__ == '__main__':
     user_data, user_time = perf_counter(user_getter, USER_NAME)
     OWNER_ID, acc_date = user_data
     formatter('account data', user_time)
-    age_data, age_time = perf_counter(daily_readme, datetime.datetime(2002, 12, 23))
+    age_data, age_time = perf_counter(daily_readme, datetime.datetime(2002, 7, 5))
     formatter('age calculation', age_time)
     total_loc, loc_time = perf_counter(loc_query, ['OWNER', 'COLLABORATOR', 'ORGANIZATION_MEMBER'], 7)
     formatter('LOC (cached)', loc_time) if total_loc[-1] else formatter('LOC (no cache)', loc_time)
@@ -515,6 +456,14 @@ if __name__ == '__main__':
     repo_data, repo_time = perf_counter(graph_repos_stars, 'repos', ['OWNER'])
     contrib_data, contrib_time = perf_counter(graph_repos_stars, 'repos', ['OWNER', 'COLLABORATOR', 'ORGANIZATION_MEMBER'])
     follower_data, follower_time = perf_counter(follower_getter, USER_NAME)
+
+    # several repositories that I've contributed to have since been deleted.
+    if OWNER_ID == {'id': 'MDQ6VXNlcjU3MzMxMTM0'}: # only calculate for user Andrew6rant
+        archived_data = add_archive()
+        for index in range(len(total_loc)-1):
+            total_loc[index] += archived_data[index]
+        contrib_data += archived_data[-1]
+        commit_data += int(archived_data[-2])
 
     for index in range(len(total_loc)-1): total_loc[index] = '{:,}'.format(total_loc[index]) # format added, deleted, and total LOC
 
