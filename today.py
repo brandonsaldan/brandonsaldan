@@ -111,6 +111,9 @@ def recursive_loc(owner, repo_name, data, cache_comment, addition_total=0, delet
     Uses GitHub's GraphQL v4 API and cursor pagination to fetch 100 commits from a repository at a time
     """
     query_count('recursive_loc')
+
+    time.sleep(1.5)
+    
     query = '''
     query ($repo_name: String!, $owner: String!, $cursor: String) {
         repository(name: $repo_name, owner: $owner) {
@@ -144,12 +147,43 @@ def recursive_loc(owner, repo_name, data, cache_comment, addition_total=0, delet
         }
     }'''
     variables = {'repo_name': repo_name, 'owner': owner, 'cursor': cursor}
-    request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS) # I cannot use simple_request(), because I want to save the file before raising Exception
-    if request.status_code == 200:
-        if request.json()['data']['repository']['defaultBranchRef'] != None: # Only count commits if repo isn't empty
-            return loc_counter_one_repo(owner, repo_name, data, cache_comment, request.json()['data']['repository']['defaultBranchRef']['target']['history'], addition_total, deletion_total, my_commits)
-        else: return 0
-    force_close_file(data, cache_comment) # saves what is currently in the file before this program crashes
+    
+    max_retries = 5
+    retry_count = 0
+    retry_delay = 2
+    
+    while retry_count < max_retries:
+        try:
+            request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
+            
+            if request.status_code == 200:
+                if request.json()['data']['repository']['defaultBranchRef'] != None:
+                    return loc_counter_one_repo(owner, repo_name, data, cache_comment, request.json()['data']['repository']['defaultBranchRef']['target']['history'], addition_total, deletion_total, my_commits)
+                else:
+                    return 0
+                    
+            elif request.status_code == 502 or request.status_code == 429:
+                retry_count += 1
+                sleep_time = retry_delay * (2 ** (retry_count - 1))
+                print(f"Rate limit hit, retrying in {sleep_time} seconds...")
+                time.sleep(sleep_time)
+                continue
+                
+            else:
+                force_close_file(data, cache_comment)
+                raise Exception('recursive_loc() has failed with a', request.status_code, request.text, QUERY_COUNT)
+                
+        except Exception as e:
+            if retry_count < max_retries - 1:
+                retry_count += 1
+                sleep_time = retry_delay * (2 ** (retry_count - 1))
+                print(f"Error occurred: {str(e)}. Retrying in {sleep_time} seconds...")
+                time.sleep(sleep_time)
+            else:
+                force_close_file(data, cache_comment)
+                raise Exception('Max retries reached for recursive_loc()', str(e), QUERY_COUNT)
+    
+    force_close_file(data, cache_comment)
     if request.status_code == 403:
         raise Exception('Too many requests in a short amount of time!\nYou\'ve hit the non-documented anti-abuse limit!')
     raise Exception('recursive_loc() has failed with a', request.status_code, request.text, QUERY_COUNT)
