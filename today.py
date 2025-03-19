@@ -107,86 +107,111 @@ def graph_repos_stars(count_type, owner_affiliation, cursor=None, add_loc=0, del
 
 
 def recursive_loc(owner, repo_name, data, cache_comment, addition_total=0, deletion_total=0, my_commits=0, cursor=None):
-    """
-    Uses GitHub's GraphQL v4 API and cursor pagination to fetch 100 commits from a repository at a time
-    """
-    query_count('recursive_loc')
-
-    time.sleep(1.5)
+    addition_total = addition_total
+    deletion_total = deletion_total
+    my_commits = my_commits
+    current_cursor = cursor
+    has_next_page = True
     
-    query = '''
-    query ($repo_name: String!, $owner: String!, $cursor: String) {
-        repository(name: $repo_name, owner: $owner) {
-            defaultBranchRef {
-                target {
-                    ... on Commit {
-                        history(first: 100, after: $cursor) {
-                            totalCount
-                            edges {
-                                node {
-                                    ... on Commit {
-                                        committedDate
-                                    }
-                                    author {
-                                        user {
-                                            id
+    while has_next_page:
+        query_count('recursive_loc')
+        time.sleep(1.5)
+        
+        query = '''
+        query ($repo_name: String!, $owner: String!, $cursor: String) {
+            repository(name: $repo_name, owner: $owner) {
+                defaultBranchRef {
+                    target {
+                        ... on Commit {
+                            history(first: 100, after: $cursor) {
+                                totalCount
+                                edges {
+                                    node {
+                                        ... on Commit {
+                                            committedDate
                                         }
+                                        author {
+                                            user {
+                                                id
+                                            }
+                                        }
+                                        deletions
+                                        additions
                                     }
-                                    deletions
-                                    additions
                                 }
-                            }
-                            pageInfo {
-                                endCursor
-                                hasNextPage
+                                pageInfo {
+                                    endCursor
+                                    hasNextPage
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    }'''
-    variables = {'repo_name': repo_name, 'owner': owner, 'cursor': cursor}
-    
-    max_retries = 5
-    retry_count = 0
-    retry_delay = 2
-    
-    while retry_count < max_retries:
-        try:
-            request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
-            
-            if request.status_code == 200:
-                if request.json()['data']['repository']['defaultBranchRef'] != None:
-                    return loc_counter_one_repo(owner, repo_name, data, cache_comment, request.json()['data']['repository']['defaultBranchRef']['target']['history'], addition_total, deletion_total, my_commits)
+        }'''
+        
+        variables = {'repo_name': repo_name, 'owner': owner, 'cursor': current_cursor}
+        
+        max_retries = 3
+        retry_count = 0
+        retry_delay = 5
+        
+        while retry_count < max_retries:
+            try:
+                request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
+                if request.status_code == 200:
+                    break
                 else:
-                    return 0
-                    
-            elif request.status_code == 502 or request.status_code == 429:
+                    retry_count += 1
+                    print(f"Request failed with status {request.status_code}, retrying {retry_count}/{max_retries}...")
+                    time.sleep(retry_delay * retry_count)
+            except Exception as e:
                 retry_count += 1
-                sleep_time = retry_delay * (2 ** (retry_count - 1))
-                print(f"Rate limit hit, retrying in {sleep_time} seconds...")
-                time.sleep(sleep_time)
-                continue
-                
-            else:
-                force_close_file(data, cache_comment)
-                raise Exception('recursive_loc() has failed with a', request.status_code, request.text, QUERY_COUNT)
-                
-        except Exception as e:
-            if retry_count < max_retries - 1:
-                retry_count += 1
-                sleep_time = retry_delay * (2 ** (retry_count - 1))
-                print(f"Error occurred: {str(e)}. Retrying in {sleep_time} seconds...")
-                time.sleep(sleep_time)
-            else:
-                force_close_file(data, cache_comment)
-                raise Exception('Max retries reached for recursive_loc()', str(e), QUERY_COUNT)
+                print(f"Request error: {str(e)}, retrying {retry_count}/{max_retries}...")
+                time.sleep(retry_delay * retry_count)
+        
+        if retry_count == max_retries:
+            print(f"Failed to process repository {owner}/{repo_name} after {max_retries} retries.")
+            return addition_total, deletion_total, my_commits
+            
+        if request.status_code != 200 or 'data' not in request.json() or request.json()['data'] is None:
+            print(f"Error response for {owner}/{repo_name}: {request.status_code}")
+            return addition_total, deletion_total, my_commits
+        
+        repo_data = request.json()['data']['repository']
+        if repo_data['defaultBranchRef'] is None:
+            return 0
+            
+        history = repo_data['defaultBranchRef']['target']['history']
+        
+        for node in history['edges']:
+            if node['node']['author']['user'] == OWNER_ID:
+                my_commits += 1
+                addition_total += node['node']['additions']
+                deletion_total += node['node']['deletions']
+        
+        has_next_page = history['pageInfo']['hasNextPage']
+        if has_next_page:
+            current_cursor = history['pageInfo']['endCursor']
     
-    force_close_file(data, cache_comment)
-    if request.status_code == 403:
-        raise Exception('Too many requests in a short amount of time!\nYou\'ve hit the non-documented anti-abuse limit!')
-    raise Exception('recursive_loc() has failed with a', request.status_code, request.text, QUERY_COUNT)
+    return addition_total, deletion_total, my_commits
+
+
+def loc_counter_one_repo(owner, repo_name, data, cache_comment, history, addition_total, deletion_total, my_commits):
+    """
+    Process a single page of commit history
+    """
+    # Process commits in this page
+    for node in history['edges']:
+        if node['node']['author']['user'] == OWNER_ID:
+            my_commits += 1
+            addition_total += node['node']['additions']
+            deletion_total += node['node']['deletions']
+
+    if history['edges'] == [] or not history['pageInfo']['hasNextPage']:
+        return addition_total, deletion_total, my_commits
+    
+    return recursive_loc(owner, repo_name, data, cache_comment, addition_total, deletion_total, my_commits, history['pageInfo']['endCursor'])
 
 
 def loc_counter_one_repo(owner, repo_name, data, cache_comment, history, addition_total, deletion_total, my_commits):
