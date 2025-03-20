@@ -322,7 +322,7 @@ def svg_overwrite(filename, age_data, commit_data, star_data, repo_data, contrib
     """
     tree = etree.parse(filename)
     root = tree.getroot()
-    justify_format(root, 'age_data', age_data, 30)
+    justify_format(root, 'age_data', age_data, 40)
     justify_format(root, 'commit_data', commit_data, 22)
     justify_format(root, 'star_data', star_data, 14)
     justify_format(root, 'repo_data', repo_data, 6)
@@ -334,21 +334,25 @@ def svg_overwrite(filename, age_data, commit_data, star_data, repo_data, contrib
     tree.write(filename, encoding='utf-8', xml_declaration=True)
 
 
-def justify_format(root, element_id, new_text, length=0):
+def justify_format(root, element_id, new_text, target_length=0):
     """
-    Updates and formats the text of the element, and modifes the amount of dots in the previous element to justify the new text on the svg
+    Updates and formats the text of the element, and modifies the dots to align text
+    
+    Parameters:
+    - root: XML root element
+    - element_id: ID of the element to update
+    - new_text: New text value
+    - target_length: Target total length (text + dots)
     """
     if isinstance(new_text, int):
         new_text = f"{'{:,}'.format(new_text)}"
     new_text = str(new_text)
     find_and_replace(root, element_id, new_text)
-    just_len = max(0, length - len(new_text))
-    if just_len <= 2:
-        dot_map = {0: '', 1: ' ', 2: '. '}
-        dot_string = dot_map[just_len]
-    else:
-        dot_string = ' ' + ('.' * just_len) + ' '
-    find_and_replace(root, f"{element_id}_dots", dot_string)
+    
+    if target_length > 0:
+        dots_needed = max(0, target_length - len(new_text))
+        dot_string = ' ' + ('.' * dots_needed) + ' ' if dots_needed > 0 else ''
+        find_and_replace(root, f"{element_id}_dots", dot_string)
 
 
 def find_and_replace(root, element_id, new_text):
