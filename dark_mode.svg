@@ -62,7 +62,7 @@ text, tspan {white-space: pre;}
 <tspan x="390" y="330" class="cc">. </tspan><tspan class="key">Email</tspan>.<tspan class="key">Personal</tspan>:<tspan class="cc"> ................. </tspan><tspan class="value">brandonmsaldan@gmail.com</tspan>
 <tspan x="390" y="350" class="cc">. </tspan><tspan class="key">LinkedIn</tspan>:<tspan class="cc"> .................................. </tspan><tspan class="value">brandonsaldan</tspan>
 <tspan x="390" y="370" class="cc">. </tspan><tspan class="key">Location</tspan>:<tspan class="cc"> .................................. </tspan><tspan class="value">Charlotte, NC</tspan>
-<tspan x="390" y="390" class="cc">. </tspan><tspan class="key">Education</tspan>:<tspan class="cc"> ............ </tspan><tspan class="value">UNC, BS in Management Info Systems</tspan>
+<tspan x="390" y="390" class="cc">. </tspan><tspan class="key">Education</tspan>:<tspan class="cc"> ........... </tspan><tspan class="value">UNCC, BS in Management Info Systems</tspan>
 <tspan x="390" y="410" class="cc">. </tspan><tspan class="key">Skills</tspan>:<tspan class="cc"> ......... </tspan><tspan class="value">Frontend Development, Data Visualization</tspan>
 <tspan x="390" y="450">- GitHub Stats</tspan> -————————————————————————————————————————————
 <tspan x="390" y="470" class="cc">. </tspan><tspan class="key">Repos</tspan>:<tspan class="cc" id="repo_data_dots"> ... </tspan><tspan class="value" id="repo_data">102</tspan> {<tspan class="key">Contributed</tspan>: <tspan class="value" id="contrib_data">107</tspan>} | <tspan class="key">Stars</tspan>:<tspan class="cc" id="star_data_dots"> ............ </tspan><tspan class="value" id="star_data">94</tspan>
