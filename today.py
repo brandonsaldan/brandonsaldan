@@ -12,7 +12,9 @@ import hashlib
 # Issues and pull requests permissions not needed at the moment, but may be used in the future
 HEADERS = {'authorization': 'token '+ os.environ['ACCESS_TOKEN']}
 USER_NAME = os.environ['USER_NAME'] # 'Andrew6rant'
-QUERY_COUNT = {'user_getter': 0, 'follower_getter': 0, 'graph_repos_stars': 0, 'recursive_loc': 0, 'graph_commits': 0, 'loc_query': 0}
+QUERY_COUNT = {'user_getter': 0, 'follower_getter': 0, 'graph_repos_stars': 0, 
+               'recursive_loc': 0, 'graph_commits': 0, 'loc_query': 0, 
+               'get_specific_repo_stars': 0}
 
 
 def daily_readme(birthday):
@@ -441,6 +443,25 @@ def formatter(query_type, difference, funct_return=False, whitespace=0):
         return f"{'{:,}'.format(funct_return): <{whitespace}}"
     return funct_return
 
+def get_specific_repo_stars(owner, repo_name):
+    """
+    Gets the star count for a specific repository
+    """
+    query_count('get_specific_repo_stars')
+    query = '''
+    query ($owner: String!, $repo_name: String!) {
+        repository(owner: $owner, name: $repo_name) {
+            stargazers {
+                totalCount
+            }
+        }
+    }'''
+    variables = {'owner': owner, 'repo_name': repo_name}
+    request = simple_request(get_specific_repo_stars.__name__, query, variables)
+    if request.status_code == 200 and request.json()['data']['repository'] is not None:
+        return request.json()['data']['repository']['stargazers']['totalCount']
+    return 0
+
 
 if __name__ == '__main__':
     """
@@ -458,12 +479,21 @@ if __name__ == '__main__':
     formatter('LOC (cached)', loc_time) if total_loc[-1] else formatter('LOC (no cache)', loc_time)
     commit_data, commit_time = perf_counter(commit_counter, 7)
     star_data, star_time = perf_counter(graph_repos_stars, 'stars', ['OWNER'])
+    
+    try:
+        nocturne_image_stars = get_specific_repo_stars('usenocturne', 'nocturne-image')
+        nocturne_ui_stars = get_specific_repo_stars('usenocturne', 'nocturne-ui')
+        star_data += nocturne_image_stars + nocturne_ui_stars
+        print(f"   Additional stars: {nocturne_image_stars + nocturne_ui_stars} (from usenocturne org)")
+    except Exception as e:
+        print(f"   Failed to get org stars: {str(e)}")
+    
     repo_data, repo_time = perf_counter(graph_repos_stars, 'repos', ['OWNER'])
     contrib_data, contrib_time = perf_counter(graph_repos_stars, 'repos', ['OWNER', 'COLLABORATOR', 'ORGANIZATION_MEMBER'])
     follower_data, follower_time = perf_counter(follower_getter, USER_NAME)
 
     # several repositories that I've contributed to have since been deleted.
-    if OWNER_ID == {'id': 'MDQ6VXNlcjU3MzMxMTM0'}: # only calculate for user Andrew6rant
+    if OWNER_ID == {'id': '26472557'}: # only calculate for user brandonsaldan
         archived_data = add_archive()
         for index in range(len(total_loc)-1):
             total_loc[index] += archived_data[index]
