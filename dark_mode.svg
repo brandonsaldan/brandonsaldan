@@ -45,7 +45,7 @@ text, tspan {white-space: pre;}
 </text>
 <g transform="translate(60, 0)">
 <text x="390" y="30" fill="#c9d1d9">
-<tspan x="390" y="30">brandon@saldan</tspan> -——————————————————————————————————————————
+<tspan x="390" y="30">brandon@saldan</tspan> -———————————————————————————————————————————
 <tspan x="390" y="50" class="cc">. </tspan><tspan class="key">OS</tspan>:<tspan class="cc"> ........................ </tspan><tspan class="value">macOS Sequoia</tspan>
 <tspan x="390" y="70" class="cc">. </tspan><tspan class="key">Uptime</tspan>:<tspan class="cc" id="age_data_dots"> ...................... </tspan><tspan class="value" id="age_data">22 years, 5 months, 29 days</tspan>
 <tspan x="390" y="90" class="cc">. </tspan><tspan class="key">Host</tspan>:<tspan class="cc"> ............................. </tspan><tspan class="value">Noble, Inc.</tspan>
