@@ -478,13 +478,15 @@ if __name__ == '__main__':
     total_loc, loc_time = perf_counter(loc_query, ['OWNER', 'COLLABORATOR', 'ORGANIZATION_MEMBER'], 7)
     formatter('LOC (cached)', loc_time) if total_loc[-1] else formatter('LOC (no cache)', loc_time)
     commit_data, commit_time = perf_counter(commit_counter, 7)
-    star_data, star_time = perf_counter(graph_repos_stars, 'stars', ['OWNER'])
+    base_stars, star_time = perf_counter(graph_repos_stars, 'stars', ['OWNER'])
+    star_data = base_stars
     
     try:
         nocturne_image_stars = get_specific_repo_stars('usenocturne', 'nocturne-image')
         nocturne_ui_stars = get_specific_repo_stars('usenocturne', 'nocturne-ui')
-        star_data += nocturne_image_stars + nocturne_ui_stars
-        print(f"   Additional stars: {nocturne_image_stars + nocturne_ui_stars} (from usenocturne org)")
+        org_stars = nocturne_image_stars + nocturne_ui_stars
+        star_data += org_stars
+        print(f"   Additional stars: {org_stars} (from usenocturne org)")
     except Exception as e:
         print(f"   Failed to get org stars: {str(e)}")
     
