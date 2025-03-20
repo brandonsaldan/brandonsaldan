@@ -48,9 +48,9 @@ text, tspan {white-space: pre;}
 <tspan x="390" y="30">brandon@saldan</tspan> -————————————————————————————————————————————
 <tspan x="390" y="50" class="cc">. </tspan><tspan class="key">OS</tspan>:<tspan class="cc"> ........................................ </tspan><tspan class="value">macOS Sequoia</tspan>
 <tspan x="390" y="70" class="cc">. </tspan><tspan class="key">Uptime</tspan>:<tspan class="cc" id="age_data_dots"> .............................. </tspan><tspan class="value" id="age_data">22 years, 5 months, 29 days</tspan>
-<tspan x="390" y="90" class="cc">. </tspan><tspan class="key">Host</tspan>:<tspan class="cc"> ......................................... </tspan><tspan class="value">Noble, Inc.</tspan>
-<tspan x="390" y="110" class="cc">. </tspan><tspan class="key">Kernel</tspan>:<tspan class="cc"> .............................. </tspan><tspan class="value">Frontend Software Engineer</tspan>
-<tspan x="390" y="130" class="cc">. </tspan><tspan class="key">IDE</tspan>:<tspan class="cc"> ........................................ </tspan><tspan class="value">VSCode 1.98.0</tspan>
+<tspan x="390" y="90" class="cc">. </tspan><tspan class="key">Host</tspan>:<tspan class="cc"> ........................................ </tspan><tspan class="value">Noble, Inc.</tspan>
+<tspan x="390" y="110" class="cc">. </tspan><tspan class="key">Kernel</tspan>:<tspan class="cc"> ......................... </tspan><tspan class="value">Frontend Software Engineer</tspan>
+<tspan x="390" y="130" class="cc">. </tspan><tspan class="key">IDE</tspan>:<tspan class="cc"> ....................................... </tspan><tspan class="value">VSCode 1.98.0</tspan>
 <tspan x="390" y="150" class="cc">. </tspan>
 <tspan x="390" y="170" class="cc">. </tspan><tspan class="key">Languages</tspan>.<tspan class="key">Programming</tspan>:<tspan class="cc"> ..... </tspan><tspan class="value">JavaScript, TypeScript</tspan>
 <tspan x="390" y="190" class="cc">. </tspan><tspan class="key">Languages</tspan>.<tspan class="key">Computer</tspan>:<tspan class="cc"> ......... </tspan><tspan class="value">HTML, CSS, JSON</tspan>
