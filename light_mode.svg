@@ -65,7 +65,7 @@ text, tspan {white-space: pre;}
 <tspan x="390" y="390" class="cc">. </tspan><tspan class="key">Education</tspan>:<tspan class="cc"> ........... </tspan><tspan class="value">UNCC, BS in Management Info Systems</tspan>
 <tspan x="390" y="410" class="cc">. </tspan><tspan class="key">Skills</tspan>:<tspan class="cc"> ......... </tspan><tspan class="value">Frontend Development, Data Visualization</tspan>
 <tspan x="390" y="450">- GitHub</tspan> -——————————————————————————————————————————————————
-<tspan x="390" y="470" class="cc">. </tspan><tspan class="key">Repos</tspan>:<tspan class="cc" id="repo_data_dots"> ....................... </tspan><tspan class="value" id="repo_data">113</tspan> | <tspan class="key">Stars</tspan>:<tspan class="cc" id="star_data_dots"> ............ </tspan><tspan class="value" id="star_data">0</tspan>
+<tspan x="390" y="470" class="cc">. </tspan><tspan class="key">Repos</tspan>:<tspan class="cc" id="repo_data_dots"> ....................... </tspan><tspan class="value" id="repo_data">113</tspan> | <tspan class="key">Stars</tspan>:<tspan class="cc" id="star_data_dots"> .......... </tspan><tspan class="value" id="star_data">103</tspan>
 </text>
 </g>
 </svg>

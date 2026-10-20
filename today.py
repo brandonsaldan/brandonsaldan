@@ -84,7 +84,10 @@ def graph_repos_stars(count_type, owner_affiliation, cursor=None, star_total=0):
     repositories = request.json()['data']['user']['repositories']
     if count_type == 'repos':
         return repositories['totalCount']
-    star_total += stars_counter(repositories['edges'])
+    page_stars = stars_counter(repositories['edges'])
+    if page_stars is None:
+        return None
+    star_total += page_stars
     if repositories['pageInfo']['hasNextPage']:
         return graph_repos_stars(count_type, owner_affiliation, repositories['pageInfo']['endCursor'], star_total)
     return star_total
@@ -93,11 +96,13 @@ def graph_repos_stars(count_type, owner_affiliation, cursor=None, star_total=0):
 def stars_counter(data):
     """
     Count total stars in repositories owned by me
+    Returns None if the token couldn't read every repository, since the total would be wrong
     """
     total_stars = 0
     for node in data:
-        if node['node'] is not None: # null when the token can't read that repository
-            total_stars += node['node']['stargazers']['totalCount']
+        if node['node'] is None: # null when the token can't read that repository
+            return None
+        total_stars += node['node']['stargazers']['totalCount']
     return total_stars
 
 
@@ -118,7 +123,7 @@ def get_specific_repo_stars(owner, repo_name):
     request = simple_request(get_specific_repo_stars.__name__, query, variables)
     if request.json()['data']['repository'] is not None:
         return request.json()['data']['repository']['stargazers']['totalCount']
-    return 0
+    raise Exception(owner + '/' + repo_name + ' could not be read')
 
 
 def svg_overwrite(filename, age_data, repo_data, star_data):
@@ -143,6 +148,8 @@ def justify_format(root, element_id, new_text, target_length=0):
     - new_text: New text value
     - target_length: Target total length (text + dots)
     """
+    if new_text is None: # leave the existing value in place
+        return
     if isinstance(new_text, int):
         new_text = f"{'{:,}'.format(new_text)}"
     new_text = str(new_text)
@@ -207,10 +214,15 @@ if __name__ == '__main__':
         nocturne_image_stars = get_specific_repo_stars('usenocturne', 'nocturne-image')
         nocturne_ui_stars = get_specific_repo_stars('usenocturne', 'nocturne-ui')
         org_stars = nocturne_image_stars + nocturne_ui_stars
-        star_data += org_stars
+        if star_data is not None:
+            star_data += org_stars
         print(f"   Additional stars: {org_stars} (from usenocturne org)")
     except Exception as e:
         print(f"   Failed to get org stars: {str(e)}")
+        star_data = None
+
+    if star_data is None:
+        print('   Star count is incomplete, keeping the previous value. See the warnings above.')
 
     repo_data, repo_time = perf_counter(graph_repos_stars, 'repos', ['OWNER'])
     formatter('repo count', repo_time)

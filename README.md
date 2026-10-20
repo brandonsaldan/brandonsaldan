@@ -1,7 +1,1 @@
-<a href="https://github.com/brandonsaldan/brandonsaldan">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/brandonsaldan/brandonsaldan/master/dark_mode.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/brandonsaldan/brandonsaldan/master/light_mode.svg">
-    <img alt="Brandon Saldan's GitHub Profile README" src="https://raw.githubusercontent.com/brandonsaldan/brandonsaldan/master/light_mode.svg">
-  </picture>
-</a>
+![Brandon Saldan's GitHub Profile README](https://raw.githubusercontent.com/brandonsaldan/brandonsaldan/master/dark_mode.svg#gh-dark-mode-only) ![Brandon Saldan's GitHub Profile README](https://raw.githubusercontent.com/brandonsaldan/brandonsaldan/master/light_mode.svg#gh-light-mode-only)
