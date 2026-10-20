@@ -20,7 +20,8 @@ RAMP = ' .:-=+#'           # sparse -> dense
 BLUR_PX = 2                # softens the outline and skin texture
 CONTRAST_PERCENT = 70      # gentle local contrast so the eyes and mouth still read
 FLATTEN_LIGHTING = 0.8     # 0-1, evens out broad shadows (e.g. one side of the face) so features stand out
-ART_WIDTH, ART_HEIGHT = 420, 500  # space left of the info column, in px
+ART_WIDTH, ART_HEIGHT = 356, 424  # area for the portrait, in px: card height minus margins, at the photo's 0.84 aspect
+INFO_X = 450               # where the info column starts; the portrait is centred in the space to its left
 CARDS = ['dark_mode.svg', 'light_mode.svg']
 
 
@@ -94,12 +95,13 @@ def to_ascii(path):
 
 def write_card(filename, lines):
     """
-    Replaces the ascii <text> block in an SVG card, vertically centred in the card
+    Replaces the ascii <text> block in an SVG card, centred vertically and in the space left of the info column
     """
     with open(filename, encoding='utf-8') as f:
         svg = f.read()
     top = 15 + FONT_PX + (ART_HEIGHT - FONT_PX * len(lines)) // 2
-    tspans = '\n'.join(f'<tspan x="15" y="{top + i * FONT_PX}">{line}</tspan>' for i, line in enumerate(lines))
+    left = round((INFO_X - len(lines[0]) * 0.6 * FONT_PX) / 2)
+    tspans = '\n'.join(f'<tspan x="{left}" y="{top + i * FONT_PX}">{line}</tspan>' for i, line in enumerate(lines))
     svg, count = re.subn(
         r'<text x="15" y="30" (fill="[^"]+") class="ascii"( font-size="[^"]+")?>\n.*?\n</text>',
         lambda m: f'<text x="15" y="30" {m.group(1)} class="ascii" font-size="{FONT_PX}px">\n{tspans}\n</text>',
