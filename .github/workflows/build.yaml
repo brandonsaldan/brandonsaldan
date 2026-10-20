@@ -5,24 +5,26 @@ on:
       - master
   schedule:
     - cron: "0 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: readme-build
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
-      - name: Get Python 3.8
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.8"
-      - name: Configure pip cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/cache/requirements.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: cache/requirements.txt
       - name: Install dependencies
         run: python -m pip install -r cache/requirements.txt
       - name: Update README file
@@ -32,9 +34,13 @@ jobs:
         run: python today.py
       - name: Commit
         run: |-
-          git add .
-          git diff
           git config --global user.email "github-actions-bot@brandonsaldan.github.io"
           git config --global user.name "brandonsaldan/GitHub-Actions-Bot"
-          git commit -m "Updated README" -a || echo "No changes to commit"
-          git push
+          git add -A
+          git diff --cached --stat
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Updated README"
+            git push
+          fi
