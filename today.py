@@ -9,7 +9,8 @@ import time
 # The workflow's built-in GITHUB_TOKEN is optional and only raises the rate limit.
 HEADERS = {'authorization': 'bearer '+ os.environ['GITHUB_TOKEN']} if os.environ.get('GITHUB_TOKEN') else {}
 USER_NAME = os.environ['USER_NAME'] # 'brandonsaldan'
-QUERY_COUNT = {'public_repos': 0, 'get_specific_repo_stars': 0}
+ORG_NAME = 'usenocturne' # stars from this organization's own (non-fork) repositories are added to mine
+QUERY_COUNT = {'public_repos': 0}
 
 
 def daily_readme(birthday):
@@ -52,13 +53,13 @@ def simple_request(func_name, path, params=None):
     raise Exception(func_name, ' has failed with a', request.status_code, request.text, QUERY_COUNT)
 
 
-def public_repos(username):
+def public_repos(path, repo_type):
     """
-    Returns every public repository owned by the user, fetched 100 at a time
+    Returns every public repository at a /users/<name>/repos or /orgs/<name>/repos path, fetched 100 at a time
     """
     repos, page = [], 1
     while True:
-        batch = simple_request(public_repos.__name__, '/users/' + username + '/repos', {'type': 'owner', 'per_page': 100, 'page': page})
+        batch = simple_request(public_repos.__name__, path, {'type': repo_type, 'per_page': 100, 'page': page})
         repos += batch
         if len(batch) < 100:
             return repos
@@ -70,13 +71,6 @@ def stars_counter(repos):
     Count total stars in repositories owned by me
     """
     return sum(repo['stargazers_count'] for repo in repos)
-
-
-def get_specific_repo_stars(owner, repo_name):
-    """
-    Gets the star count for a specific repository
-    """
-    return simple_request(get_specific_repo_stars.__name__, '/repos/' + owner + '/' + repo_name)['stargazers_count']
 
 
 def svg_overwrite(filename, age_data, repo_data, star_data):
@@ -160,18 +154,16 @@ if __name__ == '__main__':
     print('Calculation times:')
     age_data, age_time = perf_counter(daily_readme, datetime.datetime(2002, 12, 23))
     formatter('age calculation', age_time)
-    repos, repo_time = perf_counter(public_repos, USER_NAME)
+    repos, repo_time = perf_counter(public_repos, '/users/' + USER_NAME + '/repos', 'owner')
     formatter('public repos', repo_time)
     repo_data = len(repos)
     star_data = stars_counter(repos)
 
     try:
-        nocturne_image_stars = get_specific_repo_stars('usenocturne', 'nocturne-image')
-        nocturne_ui_stars = get_specific_repo_stars('usenocturne', 'nocturne-ui')
-        org_stars = nocturne_image_stars + nocturne_ui_stars
-        if star_data is not None:
-            star_data += org_stars
-        print(f"   Additional stars: {org_stars} (from usenocturne org)")
+        org_repos = [repo for repo in public_repos('/orgs/' + ORG_NAME + '/repos', 'public') if not repo['fork']]
+        org_stars = stars_counter(org_repos)
+        star_data += org_stars
+        print(f"   Additional stars: {org_stars} (from {len(org_repos)} {ORG_NAME} repos)")
     except Exception as e:
         print(f"   Failed to get org stars: {str(e)}")
         star_data = None
