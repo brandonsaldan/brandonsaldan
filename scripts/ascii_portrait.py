@@ -9,9 +9,10 @@ which becomes empty space so only the subject is drawn.
 
 Rewrites the ascii <text> block in dark_mode.svg and light_mode.svg in place.
 
-Works like Andrew6rant's card: the photo is pushed to near black-and-white, then each
-cell gets the character whose glyph shape best matches that patch of the photo, from the
-same character sets his cards use. The light card draws dark areas; the dark card is its negative.
+Works like Andrew6rant's card, with the same character sets his cards use: the photo's
+contrast is raised, then each cell gets one of the characters closest to that patch's
+darkness, picking whichever of those best follows the patch's shape. The light card draws
+dark areas; the dark card is its negative.
 """
 import html
 import re
@@ -20,10 +21,11 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 import numpy as np
 
 FONT_PX, LINE_PX = 16, 20  # same glyph size as the info text, on 20px rows
-COLS, ROWS = 43, 25        # 413 x 500 px, from the card's left edge to just before the info column
+COLS, ROWS = 38, 25        # 365 x 500 px, from the card's left edge to just before the info column at x=390
 LEFT, TOP = 15, 15
-CROP_BOTTOM = 820          # photo row (px) to end the crop at, just below the collar
-CONTRAST = 16              # steepness of the curve that pushes the photo toward black and white
+CROP_BOTTOM = 880          # photo row (px) to end the crop at, low enough to show the shoulders
+CONTRAST = 8               # steepness of the curve that raises the photo's contrast
+NEAREST = 6                # how many characters of about the right darkness compete on shape
 FLATTEN_LIGHTING = 0.9     # 0-1, evens out broad shadows (e.g. one side of the face)
 DARK_CHARS = '!"#%\'*,./:;=@HLMNW[\\]^`bdghijklmnprwxy{|}~'
 LIGHT_CHARS = '!"#$%&\'*+,-.;=@BFLMTW]`gklrwy|}~'
@@ -74,7 +76,7 @@ def to_ascii(path):
     lo, hi = np.percentile(g[~background], 3), np.percentile(g[~background], 97)
     bright = np.where(background, 1.0, np.clip((g - lo) / (hi - lo), 0, 1))
 
-    # near black-and-white, split at the subject's median brightness
+    # raise contrast around the subject's median brightness
     mid = np.median(bright[~background])
     curve = lambda x: 1 / (1 + np.exp(-CONTRAST * (x - mid)))
     contrast = np.clip((curve(bright) - curve(0)) / (curve(1) - curve(0)), 0, 1)
@@ -85,9 +87,24 @@ def to_ascii(path):
         cells = np.asarray(Image.fromarray((np.clip(ink, 0, 1) * 255).astype(np.uint8))
                            .resize((COLS * GW, ROWS * GH), Image.BOX)).astype(float) / 255
         cells = cells.reshape(ROWS, GH, COLS, GW).transpose(0, 2, 1, 3).reshape(ROWS, COLS, -1)
-        cells *= top_ink * 1.3  # a fully inked cell should match the densest glyph
-        return [''.join(chars[int(np.argmin(((bank - cells[r, c]) ** 2).sum(1)))] for c in range(COLS))
-                for r in range(ROWS)]
+        cells *= top_ink  # a fully inked cell matches the densest glyph
+        inks = bank.mean(1)
+        centered = bank - inks[:, None]
+        norms = np.linalg.norm(centered, axis=1) + 1e-6
+        lines = []
+        for r in range(ROWS):
+            row = ''
+            for c in range(COLS):
+                patch = cells[r, c]
+                near = np.argsort(np.abs(inks - patch.mean()))[:NEAREST]  # characters with about the right darkness
+                shape = patch - patch.mean()
+                if np.linalg.norm(shape) < 0.4:  # flat patch: darkness alone decides
+                    best = near[0]
+                else:  # otherwise the one whose glyph best follows the patch's shape
+                    best = near[np.argmax(centered[near] @ shape / (norms[near] * np.linalg.norm(shape)))]
+                row += chars[best]
+            lines.append(row)
+        return lines
 
     return render(contrast, DARK_CHARS), render(1 - contrast, LIGHT_CHARS)
 

@@ -9,8 +9,9 @@ import time
 # The workflow's built-in GITHUB_TOKEN is optional and only raises the rate limit.
 HEADERS = {'authorization': 'bearer '+ os.environ['GITHUB_TOKEN']} if os.environ.get('GITHUB_TOKEN') else {}
 USER_NAME = os.environ['USER_NAME'] # 'brandonsaldan'
-ORG_NAME = 'usenocturne' # stars from this organization's own (non-fork) repositories are added to mine
-QUERY_COUNT = {'public_repos': 0}
+ORG_NAME = 'usenocturne' # this organization's own (non-fork) repositories count toward my stars, commits, and lines of code
+QUERY_COUNT = {'public_repos': 0, 'follower_getter': 0, 'contributor_stats': 0}
+LINE_WIDTH = 60 # every info line is padded with dots to this many characters
 
 
 def daily_readme(birthday):
@@ -66,6 +67,50 @@ def public_repos(path, repo_type):
         page += 1
 
 
+def follower_getter(username):
+    """
+    Returns the number of followers of the user
+    """
+    return simple_request(follower_getter.__name__, '/users/' + username)['followers']
+
+
+def contributor_stats(full_names, rounds=6, wait=15):
+    """
+    Returns my (commits, additions, deletions, repos contributed to) across the given repositories,
+    from GitHub's per-repository contributor statistics. GitHub computes these in the background and
+    answers 202 until they're ready, so repositories still computing are retried a few times.
+    Returns None if any repository never became ready, since the totals would be incomplete.
+    """
+    commits = additions = deletions = contributed = 0
+    pending = list(full_names)
+    for attempt in range(rounds):
+        still_pending = []
+        for name in pending:
+            query_count(contributor_stats.__name__)
+            request = requests.get('https://api.github.com/repos/' + name + '/stats/contributors', headers=HEADERS)
+            if request.status_code in (401, 403) and HEADERS:
+                request = requests.get('https://api.github.com/repos/' + name + '/stats/contributors')
+            if request.status_code == 202:
+                still_pending.append(name); continue
+            if request.status_code == 204: # empty repository
+                continue
+            if request.status_code != 200:
+                raise Exception(contributor_stats.__name__, ' has failed with a', request.status_code, request.text, QUERY_COUNT)
+            for author in request.json():
+                if author.get('author') and author['author']['login'].lower() == USER_NAME.lower():
+                    contributed += 1
+                    commits += author['total']
+                    additions += sum(week['a'] for week in author['weeks'])
+                    deletions += sum(week['d'] for week in author['weeks'])
+        pending = still_pending
+        if not pending:
+            return commits, additions, deletions, contributed
+        print(f'   {len(pending)} repos still computing contributor stats, retrying in {wait} s')
+        time.sleep(wait)
+    print('   Contributor stats never finished for: ' + ', '.join(pending))
+    return None
+
+
 def stars_counter(repos):
     """
     Count total stars in repositories owned by me
@@ -73,16 +118,45 @@ def stars_counter(repos):
     return sum(repo['stargazers_count'] for repo in repos)
 
 
-def svg_overwrite(filename, age_data, repo_data, star_data):
+def svg_overwrite(filename, age_data, repo_data, contrib_data, star_data, commit_data, follower_data, loc_data):
     """
-    Parse SVG files and update elements with my age, repositories, and stars
+    Parse SVG files and update elements with my age, repositories, stars, commits, followers, and lines of code
     """
     tree = etree.parse(filename)
     root = tree.getroot()
     justify_format(root, 'age_data', age_data, 49)
-    justify_format(root, 'repo_data', repo_data, 26)
-    justify_format(root, 'star_data', star_data, 13)
+    justify_format(root, 'repo_data', repo_data, 6)
+    justify_format(root, 'contrib_data', contrib_data)
+    justify_format(root, 'star_data', star_data, 14)
+    justify_format(root, 'commit_data', commit_data, 23)
+    justify_format(root, 'follower_data', follower_data, 10)
+    if loc_data is not None:
+        justify_format(root, 'loc_data', loc_data[2], 20)
+        justify_format(root, 'loc_add', loc_data[0])
+        justify_format(root, 'loc_del', loc_data[1], 7)
+    fit_lines(root)
     tree.write(filename, encoding='utf-8', xml_declaration=True)
+
+
+def fit_lines(root):
+    """
+    Pads or trims the first run of dots on each info line so every line is exactly LINE_WIDTH characters,
+    whatever the lengths of the numbers on it
+    """
+    for text in root.iter('{http://www.w3.org/2000/svg}text'):
+        lines = []
+        for child in text:
+            if child.get('x') is not None:
+                lines.append([])
+            if lines:
+                lines[-1].append(child)
+        for line in lines:
+            dots = next((e for e in line if (e.get('id') or '').endswith('_dots') and (e.text or '').strip()), None)
+            if dots is None:
+                continue
+            length = sum(len(e.text or '') + len((e.tail or '').replace('\n', '')) for e in line)
+            count = max(1, dots.text.count('.') + LINE_WIDTH - length)
+            dots.text = ' ' + '.' * count + ' '
 
 
 def justify_format(root, element_id, new_text, target_length=0):
@@ -159,6 +233,7 @@ if __name__ == '__main__':
     repo_data = len(repos)
     star_data = stars_counter(repos)
 
+    org_repos = []
     try:
         org_repos = [repo for repo in public_repos('/orgs/' + ORG_NAME + '/repos', 'public') if not repo['fork']]
         org_stars = stars_counter(org_repos)
@@ -171,10 +246,22 @@ if __name__ == '__main__':
     if star_data is None:
         print('   Star count is incomplete, keeping the previous value. See the warnings above.')
 
-    svg_overwrite('dark_mode.svg', age_data, repo_data, star_data)
-    svg_overwrite('light_mode.svg', age_data, repo_data, star_data)
+    follower_data, follower_time = perf_counter(follower_getter, USER_NAME)
+    formatter('followers', follower_time)
 
-    print('{:<21}'.format('Total function time:'), '{:>11}'.format('%.4f' % (age_time + repo_time)), ' s', sep='')
+    stats, stats_time = perf_counter(contributor_stats, [repo['full_name'] for repo in repos + org_repos])
+    formatter('contributor stats', stats_time)
+    commit_data = contrib_data = loc_data = None
+    if stats is None:
+        print('   Commits and lines of code are incomplete, keeping the previous values.')
+    else:
+        commit_data, added, deleted, contrib_data = stats
+        loc_data = ['{:,}'.format(added), '{:,}'.format(deleted), '{:,}'.format(added - deleted)]
+
+    for card in ['dark_mode.svg', 'light_mode.svg']:
+        svg_overwrite(card, age_data, repo_data, contrib_data, star_data, commit_data, follower_data, loc_data)
+
+    print('{:<21}'.format('Total function time:'), '{:>11}'.format('%.4f' % (age_time + repo_time + follower_time + stats_time)), ' s', sep='')
 
     print('Total GitHub REST API calls:', '{:>6}'.format(sum(QUERY_COUNT.values())))
     for funct_name, count in QUERY_COUNT.items(): print('{:<28}'.format('   ' + funct_name + ':'), '{:>6}'.format(count))
