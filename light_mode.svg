@@ -81,7 +81,7 @@ text, tspan {white-space: pre;}
 <tspan x="390" y="410" class="cc">. </tspan><tspan class="key">ORCID</tspan>:<tspan class="cc"> ............................... </tspan><tspan class="value">0009-0005-4385-983X</tspan>
 <tspan x="390" y="430" class="cc">. </tspan>
 <tspan x="390" y="450">- GitHub</tspan> -——————————————————————————————————————————————————
-<tspan x="390" y="470" class="cc">. </tspan><tspan class="key">Repos</tspan>:<tspan class="cc" id="repo_data_dots"> ........................ </tspan><tspan class="value" id="repo_data">16</tspan> | <tspan class="key">Stars</tspan>:<tspan class="cc" id="star_data_dots"> .......... </tspan><tspan class="value" id="star_data">662</tspan>
+<tspan x="390" y="470" class="cc">. </tspan><tspan class="key">Repos</tspan>:<tspan class="cc" id="repo_data_dots"> ........................ </tspan><tspan class="value" id="repo_data">16</tspan> | <tspan class="key">Stars</tspan>:<tspan class="cc" id="star_data_dots"> .......... </tspan><tspan class="value" id="star_data">805</tspan>
 </text>
 </g>
 </svg>
