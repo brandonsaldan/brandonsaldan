@@ -5,9 +5,9 @@ import os
 from lxml import etree
 import time
 
-# Fine-grained personal access token with All Repositories access:
-# Repository permissions: read:Metadata
-HEADERS = {'authorization': 'bearer '+ os.environ['ACCESS_TOKEN']}
+# The workflow's built-in GITHUB_TOKEN can read public data, so no personal access token is needed.
+# Only public repositories are counted.
+HEADERS = {'authorization': 'bearer '+ os.environ['GITHUB_TOKEN']}
 USER_NAME = os.environ['USER_NAME'] # 'brandonsaldan'
 QUERY_COUNT = {'graph_repos_stars': 0, 'get_specific_repo_stars': 0}
 
@@ -47,20 +47,20 @@ def simple_request(func_name, query, variables):
             print('   ' + func_name + ' warning:', error.get('message'))
         return request
     if request.status_code == 401:
-        raise Exception(func_name + ' got a 401: ACCESS_TOKEN is missing, invalid, or expired. Generate a new token and update the repository secret.')
+        raise Exception(func_name + ' got a 401: GITHUB_TOKEN is missing or invalid. Check the env block in .github/workflows/build.yaml.')
     raise Exception(func_name, ' has failed with a', request.status_code, request.text, QUERY_COUNT)
 
 
 def graph_repos_stars(count_type, owner_affiliation, cursor=None, star_total=0):
     """
-    Uses GitHub's GraphQL v4 API to return my total repository or star count.
+    Uses GitHub's GraphQL v4 API to return my public repository or star count.
     Stars are paginated 100 repositories at a time.
     """
     query_count('graph_repos_stars')
     query = '''
     query ($owner_affiliation: [RepositoryAffiliation], $login: String!, $cursor: String) {
         user(login: $login) {
-            repositories(first: 100, after: $cursor, ownerAffiliations: $owner_affiliation) {
+            repositories(first: 100, after: $cursor, ownerAffiliations: $owner_affiliation, privacy: PUBLIC) {
                 totalCount
                 edges {
                     node {
