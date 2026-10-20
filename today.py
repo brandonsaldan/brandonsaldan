@@ -43,6 +43,8 @@ def simple_request(func_name, query, variables):
     """
     request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
     if request.status_code == 200:
+        for error in request.json().get('errors', [])[:5]: # partial data still comes back with a 200
+            print('   ' + func_name + ' warning:', error.get('message'))
         return request
     if request.status_code == 401:
         raise Exception(func_name + ' got a 401: ACCESS_TOKEN is missing, invalid, or expired. Generate a new token and update the repository secret.')
@@ -93,7 +95,9 @@ def stars_counter(data):
     Count total stars in repositories owned by me
     """
     total_stars = 0
-    for node in data: total_stars += node['node']['stargazers']['totalCount']
+    for node in data:
+        if node['node'] is not None: # null when the token can't read that repository
+            total_stars += node['node']['stargazers']['totalCount']
     return total_stars
 
 
