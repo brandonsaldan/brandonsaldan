@@ -21,6 +21,7 @@ BLUR_PX = 2                # softens the outline and skin texture
 CONTRAST_PERCENT = 70      # gentle local contrast so the eyes and mouth still read
 FLATTEN_LIGHTING = 0.8     # 0-1, evens out broad shadows (e.g. one side of the face) so features stand out
 ART_WIDTH, ART_HEIGHT = 356, 424  # area for the portrait, in px: card height minus margins, at the photo's 0.84 aspect
+CROP_BOTTOM = 880          # photo row (px) to end the crop at, just below the shoulders; None keeps the full photo
 INFO_X = 450               # where the info column starts; the portrait is centred in the space to its left
 CARDS = ['dark_mode.svg', 'light_mode.svg']
 
@@ -35,7 +36,7 @@ def to_ascii(path):
     full = Image.open(path).convert('RGB')
     foreground_rows = (np.asarray(full).min(2) < 250).sum(1)
     top = int(np.argmax(foreground_rows > 20)) - 4  # start right at the top of the hair
-    height = full.height - top
+    height = (CROP_BOTTOM or full.height) - top
     width = int(height * cols * cell_w / (rows * line_h))
     center = full.width // 2
     im = full.crop((center - width // 2, top, center + width // 2, top + height))
