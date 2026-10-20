@@ -4,105 +4,102 @@ Turns a cut-out portrait photo into the ASCII art on the left of both profile ca
 The photo needs a pure white background (like a cut-out from Photos or remove.bg),
 which becomes empty space so only the subject is drawn.
 
-    python -m pip install pillow numpy lxml
+    python -m pip install pillow numpy
     python scripts/ascii_portrait.py path/to/photo.png
 
 Rewrites the ascii <text> block in dark_mode.svg and light_mode.svg in place.
-The light card draws dark areas densely; the dark card is its negative.
+
+Works like Andrew6rant's card: the photo is pushed to near black-and-white, then each
+cell gets the character whose glyph shape best matches that patch of the photo, from the
+same character sets his cards use. The light card draws dark areas; the dark card is its negative.
 """
+import html
 import re
 import sys
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 import numpy as np
 
-FONT_PX = 9                # art font size; line height matches it
-RAMP = ' .:-=+#'           # sparse -> dense
-BLUR_PX = 2                # softens the outline and skin texture
-CONTRAST_PERCENT = 70      # gentle local contrast so the eyes and mouth still read
-FLATTEN_LIGHTING = 0.8     # 0-1, evens out broad shadows (e.g. one side of the face) so features stand out
-ART_WIDTH, ART_HEIGHT = 356, 424  # area for the portrait, in px: card height minus margins, at the photo's 0.84 aspect
-CROP_BOTTOM = 880          # photo row (px) to end the crop at, just below the shoulders; None keeps the full photo
-INFO_X = 450               # where the info column starts; the portrait is centred in the space to its left
+FONT_PX, LINE_PX = 16, 20  # same glyph size as the info text, on 20px rows
+COLS, ROWS = 43, 25        # 413 x 500 px, from the card's left edge to just before the info column
+LEFT, TOP = 15, 15
+CROP_BOTTOM = 820          # photo row (px) to end the crop at, just below the collar
+CONTRAST = 16              # steepness of the curve that pushes the photo toward black and white
+FLATTEN_LIGHTING = 0.9     # 0-1, evens out broad shadows (e.g. one side of the face)
+DARK_CHARS = '!"#%\'*,./:;=@HLMNW[\\]^`bdghijklmnprwxy{|}~'
+LIGHT_CHARS = '!"#$%&\'*+,-.;=@BFLMTW]`gklrwy|}~'
+GLYPH_FONT = '/System/Library/Fonts/Menlo.ttc'  # any monospace .ttf/.ttc works; only used to measure glyph shapes
 CARDS = ['dark_mode.svg', 'light_mode.svg']
+
+GW, GH = 12, 25            # glyph bitmap size, same 0.48 aspect as a 16px glyph on a 20px row
+
+
+def blur(a, radius):
+    return np.asarray(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(radius))).astype(float)
+
+
+def glyph_bank(charset):
+    """
+    Returns the characters (space first), their blurred glyph bitmaps flattened, and the densest glyph's ink
+    """
+    font = ImageFont.truetype(GLYPH_FONT, 20)
+    ascent, descent = font.getmetrics()
+    chars = [' '] + sorted(set(charset))
+    bitmaps = []
+    for ch in chars:
+        im = Image.new('L', (GW, GH), 0)
+        if ch != ' ':
+            ImageDraw.Draw(im).text((0, (GH - ascent - descent) // 2 + 1), ch, fill=255, font=font)
+        bitmaps.append(np.asarray(im).astype(float))
+    top_ink = max(b.mean() for b in bitmaps) / 255
+    bank = np.stack([blur(b, 1) / 255 for b in bitmaps]).reshape(len(chars), -1)
+    return chars, bank, top_ink
 
 
 def to_ascii(path):
     """
     Returns (dark_lines, light_lines) for the photo at path
     """
-    cell_w, line_h = 0.6 * FONT_PX, FONT_PX  # monospace cells are 0.6em wide
-    cols, rows = int(ART_WIDTH // cell_w), int(ART_HEIGHT // line_h)
-
     full = Image.open(path).convert('RGB')
-    foreground_rows = (np.asarray(full).min(2) < 250).sum(1)
-    top = int(np.argmax(foreground_rows > 20)) - 4  # start right at the top of the hair
-    height = (CROP_BOTTOM or full.height) - top
-    width = int(height * cols * cell_w / (rows * line_h))
-    center = full.width // 2
+    top = int(np.argmax((np.asarray(full).min(2) < 250).sum(1) > 20)) - 4  # start right at the top of the hair
+    height = CROP_BOTTOM - top
+    width = int(height * COLS * 0.6 * FONT_PX / (ROWS * LINE_PX))
+    center = full.width // 2 + 10
     im = full.crop((center - width // 2, top, center + width // 2, top + height))
 
-    background = np.asarray(im).min(2) >= 250
-    halo = (np.asarray(im.convert('L')) >= 225) & ~background  # white fringe left by the cut-out
-    gray = im.convert('L').filter(ImageFilter.GaussianBlur(BLUR_PX))
-    if FLATTEN_LIGHTING:
-        # subtract the broad lighting, estimated with the background filled in so edges don't skew it
-        g = np.asarray(gray).astype(float)
-        filled = np.where(background, g[~background].mean(), g)
-        lighting = np.asarray(Image.fromarray(filled.astype(np.uint8)).filter(ImageFilter.GaussianBlur(60))).astype(float)
-        g = np.clip(g - FLATTEN_LIGHTING * (lighting - lighting[~background].mean()), 0, 255)
-        gray = Image.fromarray(g.astype(np.uint8))
-    gray = gray.filter(ImageFilter.UnsharpMask(radius=40, percent=CONTRAST_PERCENT, threshold=0))
-    g = np.asarray(gray).astype(float)
+    # white background, plus the white fringe a cut-out leaves behind
+    background = (np.asarray(im).min(2) >= 250) | (np.asarray(im.convert('L')) >= 225)
+    g = np.asarray(im.convert('L')).astype(float)
+    lighting = blur(np.where(background, g[~background].mean(), g), 60)
+    g = np.clip(g - FLATTEN_LIGHTING * (lighting - lighting[~background].mean()), 0, 255)
+    lo, hi = np.percentile(g[~background], 3), np.percentile(g[~background], 97)
+    bright = np.where(background, 1.0, np.clip((g - lo) / (hi - lo), 0, 1))
 
-    h, w = g.shape
-    lum = np.full((rows, cols), 255.0)
-    bg_fraction = np.ones((rows, cols))
-    for r in range(rows):
-        for c in range(cols):
-            ys = slice(r * h // rows, (r + 1) * h // rows)
-            xs = slice(c * w // cols, (c + 1) * w // cols)
-            bg_fraction[r, c] = background[ys, xs].mean()
-            mask = ~background[ys, xs] & ~halo[ys, xs]
-            if mask.any():
-                lum[r, c] = g[ys, xs][mask].mean()
+    # near black-and-white, split at the subject's median brightness
+    mid = np.median(bright[~background])
+    curve = lambda x: 1 / (1 + np.exp(-CONTRAST * (x - mid)))
+    contrast = np.clip((curve(bright) - curve(0)) / (curve(1) - curve(0)), 0, 1)
 
-    subject = bg_fraction < 0.5
-    padded = np.pad(subject, 1)
-    neighbours = sum(np.roll(np.roll(padded, dy, 0), dx, 1)
-                     for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)[1:-1, 1:-1]
-    subject &= neighbours >= 3  # drop stray single cells
+    def render(ink, charset):
+        chars, bank, top_ink = glyph_bank(charset)
+        ink = blur(np.where(background, 0, ink) * 255, 1) / 255
+        cells = np.asarray(Image.fromarray((np.clip(ink, 0, 1) * 255).astype(np.uint8))
+                           .resize((COLS * GW, ROWS * GH), Image.BOX)).astype(float) / 255
+        cells = cells.reshape(ROWS, GH, COLS, GW).transpose(0, 2, 1, 3).reshape(ROWS, COLS, -1)
+        cells *= top_ink * 1.3  # a fully inked cell should match the densest glyph
+        return [''.join(chars[int(np.argmin(((bank - cells[r, c]) ** 2).sum(1)))] for c in range(COLS))
+                for r in range(ROWS)]
 
-    # rank-based equalization so each character covers a similar share of the subject
-    values = np.sort(lum[subject])
-    rank = np.clip(np.searchsorted(values, lum, side='right') / len(values) - 1e-9, 0, 1)
-
-    def render(dense_when_bright):
-        lines = []
-        for r in range(rows):
-            row = ''
-            for c in range(cols):
-                if not subject[r, c]:
-                    row += ' '
-                elif bg_fraction[r, c] > 0.25:
-                    row += '.'  # soft outline
-                else:
-                    t = rank[r, c] if dense_when_bright else 1 - rank[r, c]
-                    row += RAMP[min(len(RAMP) - 1, int(t * len(RAMP)))]
-            lines.append(row)
-        return lines
-
-    return render(True), render(False)
+    return render(contrast, DARK_CHARS), render(1 - contrast, LIGHT_CHARS)
 
 
 def write_card(filename, lines):
     """
-    Replaces the ascii <text> block in an SVG card, centred vertically and in the space left of the info column
+    Replaces the ascii <text> block in an SVG card
     """
     with open(filename, encoding='utf-8') as f:
         svg = f.read()
-    top = 15 + FONT_PX + (ART_HEIGHT - FONT_PX * len(lines)) // 2
-    left = round((INFO_X - len(lines[0]) * 0.6 * FONT_PX) / 2)
-    tspans = '\n'.join(f'<tspan x="{left}" y="{top + i * FONT_PX}">{line}</tspan>' for i, line in enumerate(lines))
+    tspans = '\n'.join(f'<tspan x="{LEFT}" y="{TOP + FONT_PX - 2 + i * LINE_PX}">{html.escape(line, quote=False)}</tspan>'
+                       for i, line in enumerate(lines))
     svg, count = re.subn(
         r'<text x="15" y="30" (fill="[^"]+") class="ascii"( font-size="[^"]+")?>\n.*?\n</text>',
         lambda m: f'<text x="15" y="30" {m.group(1)} class="ascii" font-size="{FONT_PX}px">\n{tspans}\n</text>',
@@ -119,4 +116,4 @@ if __name__ == '__main__':
     dark, light = to_ascii(sys.argv[1])
     write_card(CARDS[0], dark)
     write_card(CARDS[1], light)
-    print(f'Wrote {len(dark[0])}x{len(dark)} portrait to {", ".join(CARDS)}')
+    print(f'Wrote {COLS}x{ROWS} portrait to {", ".join(CARDS)}')
