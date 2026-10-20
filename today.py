@@ -131,11 +131,33 @@ def svg_overwrite(filename, age_data, repo_data, contrib_data, star_data, commit
     justify_format(root, 'commit_data', commit_data, 23)
     justify_format(root, 'follower_data', follower_data, 10)
     if loc_data is not None:
-        justify_format(root, 'loc_data', loc_data[2], 20)
+        justify_format(root, 'loc_data', loc_data[2])
         justify_format(root, 'loc_add', loc_data[0])
-        justify_format(root, 'loc_del', loc_data[1], 7)
+        justify_format(root, 'loc_del', loc_data[1])
     fit_lines(root)
+    align_loc(root)
     tree.write(filename, encoding='utf-8', xml_declaration=True)
+
+
+def info_lines(root):
+    """
+    Returns the elements of each line of text in the SVG, grouped by the tspans that start a new line
+    """
+    lines = []
+    for text in root.iter('{http://www.w3.org/2000/svg}text'):
+        for child in text:
+            if child.get('x') is not None:
+                lines.append([])
+            if lines:
+                lines[-1].append(child)
+    return lines
+
+
+def line_text(line):
+    """
+    Returns the characters a line renders, as one string
+    """
+    return ''.join((e.text or '') + (e.tail or '').replace('\n', '') for e in line)
 
 
 def fit_lines(root):
@@ -143,20 +165,33 @@ def fit_lines(root):
     Pads or trims the first run of dots on each info line so every line is exactly LINE_WIDTH characters,
     whatever the lengths of the numbers on it
     """
-    for text in root.iter('{http://www.w3.org/2000/svg}text'):
-        lines = []
-        for child in text:
-            if child.get('x') is not None:
-                lines.append([])
-            if lines:
-                lines[-1].append(child)
-        for line in lines:
-            dots = next((e for e in line if (e.get('id') or '').endswith('_dots') and (e.text or '').strip()), None)
-            if dots is None:
-                continue
-            length = sum(len(e.text or '') + len((e.tail or '').replace('\n', '')) for e in line)
-            count = max(1, dots.text.count('.') + LINE_WIDTH - length)
-            dots.text = ' ' + '.' * count + ' '
+    for line in info_lines(root):
+        dots = next((e for e in line if (e.get('id') or '').endswith('_dots') and (e.text or '').strip()), None)
+        if dots is None:
+            continue
+        count = max(1, dots.text.count('.') + LINE_WIDTH - len(line_text(line)))
+        dots.text = ' ' + '.' * count + ' '
+
+
+def align_loc(root):
+    """
+    Lines up the Lines of Code total with the commit count above it: the total ends where the commit count
+    ends and its '(' sits under the '|'. The gap between the added and deleted counts takes up the rest,
+    so the line still ends at LINE_WIDTH.
+    """
+    lines = info_lines(root)
+    commits = next((line_text(l) for l in lines if any(e.get('id') == 'commit_data' for e in l)), None)
+    loc = next((l for l in lines if any(e.get('id') == 'loc_data' for e in l)), None)
+    if commits is None or loc is None or '|' not in commits:
+        return
+    bar = commits.index('|')
+    elements = {e.get('id'): e for e in loc}
+    head = line_text(loc[:loc.index(elements['loc_data_dots'])])  # '. Lines of Code:'
+    dots = bar - 1 - len(head) - 2 - len(elements['loc_data'].text)
+    elements['loc_data_dots'].text = ' ' + '.' * max(1, dots) + ' '
+    elements['loc_del_dots'].text = ''
+    spaces = LINE_WIDTH - len(line_text(loc))
+    elements['loc_del_dots'].text = ' ' * max(0, spaces)
 
 
 def justify_format(root, element_id, new_text, target_length=0):
