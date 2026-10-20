@@ -5,11 +5,11 @@ import os
 from lxml import etree
 import time
 
-# The workflow's built-in GITHUB_TOKEN can read public data, so no personal access token is needed.
-# Only public repositories are counted.
-HEADERS = {'authorization': 'bearer '+ os.environ['GITHUB_TOKEN']}
+# Only public data is read, through GitHub's REST API, so no personal access token is needed.
+# The workflow's built-in GITHUB_TOKEN is optional and only raises the rate limit.
+HEADERS = {'authorization': 'bearer '+ os.environ['GITHUB_TOKEN']} if os.environ.get('GITHUB_TOKEN') else {}
 USER_NAME = os.environ['USER_NAME'] # 'brandonsaldan'
-QUERY_COUNT = {'graph_repos_stars': 0, 'get_specific_repo_stars': 0}
+QUERY_COUNT = {'public_repos': 0, 'get_specific_repo_stars': 0}
 
 
 def daily_readme(birthday):
@@ -37,93 +37,46 @@ def format_plural(unit):
     return 's' if unit != 1 else ''
 
 
-def simple_request(func_name, query, variables):
+def simple_request(func_name, path, params=None):
     """
-    Returns a request, or raises an Exception if the response does not succeed.
+    Returns the JSON from a GitHub REST API GET, or raises an Exception if the response does not succeed.
+    Retries without the token if GitHub refuses it, since everything requested here is public.
     """
-    request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
+    query_count(func_name)
+    request = requests.get('https://api.github.com' + path, params=params, headers=HEADERS)
+    if request.status_code in (401, 403) and HEADERS:
+        print('   ' + func_name + ' warning: token refused (' + str(request.status_code) + '), retrying without it')
+        request = requests.get('https://api.github.com' + path, params=params)
     if request.status_code == 200:
-        for error in request.json().get('errors', [])[:5]: # partial data still comes back with a 200
-            print('   ' + func_name + ' warning:', error.get('message'))
-        return request
-    if request.status_code == 401:
-        raise Exception(func_name + ' got a 401: GITHUB_TOKEN is missing or invalid. Check the env block in .github/workflows/build.yaml.')
+        return request.json()
     raise Exception(func_name, ' has failed with a', request.status_code, request.text, QUERY_COUNT)
 
 
-def graph_repos_stars(count_type, owner_affiliation, cursor=None, star_total=0):
+def public_repos(username):
     """
-    Uses GitHub's GraphQL v4 API to return my public repository or star count.
-    Stars are paginated 100 repositories at a time.
+    Returns every public repository owned by the user, fetched 100 at a time
     """
-    query_count('graph_repos_stars')
-    query = '''
-    query ($owner_affiliation: [RepositoryAffiliation], $login: String!, $cursor: String) {
-        user(login: $login) {
-            repositories(first: 100, after: $cursor, ownerAffiliations: $owner_affiliation, privacy: PUBLIC) {
-                totalCount
-                edges {
-                    node {
-                        ... on Repository {
-                            nameWithOwner
-                            stargazers {
-                                totalCount
-                            }
-                        }
-                    }
-                }
-                pageInfo {
-                    endCursor
-                    hasNextPage
-                }
-            }
-        }
-    }'''
-    variables = {'owner_affiliation': owner_affiliation, 'login': USER_NAME, 'cursor': cursor}
-    request = simple_request(graph_repos_stars.__name__, query, variables)
-    repositories = request.json()['data']['user']['repositories']
-    if count_type == 'repos':
-        return repositories['totalCount']
-    page_stars = stars_counter(repositories['edges'])
-    if page_stars is None:
-        return None
-    star_total += page_stars
-    if repositories['pageInfo']['hasNextPage']:
-        return graph_repos_stars(count_type, owner_affiliation, repositories['pageInfo']['endCursor'], star_total)
-    return star_total
+    repos, page = [], 1
+    while True:
+        batch = simple_request(public_repos.__name__, '/users/' + username + '/repos', {'type': 'owner', 'per_page': 100, 'page': page})
+        repos += batch
+        if len(batch) < 100:
+            return repos
+        page += 1
 
 
-def stars_counter(data):
+def stars_counter(repos):
     """
     Count total stars in repositories owned by me
-    Returns None if the token couldn't read every repository, since the total would be wrong
     """
-    total_stars = 0
-    for node in data:
-        if node['node'] is None: # null when the token can't read that repository
-            return None
-        total_stars += node['node']['stargazers']['totalCount']
-    return total_stars
+    return sum(repo['stargazers_count'] for repo in repos)
 
 
 def get_specific_repo_stars(owner, repo_name):
     """
     Gets the star count for a specific repository
     """
-    query_count('get_specific_repo_stars')
-    query = '''
-    query ($owner: String!, $repo_name: String!) {
-        repository(owner: $owner, name: $repo_name) {
-            stargazers {
-                totalCount
-            }
-        }
-    }'''
-    variables = {'owner': owner, 'repo_name': repo_name}
-    request = simple_request(get_specific_repo_stars.__name__, query, variables)
-    if request.json()['data']['repository'] is not None:
-        return request.json()['data']['repository']['stargazers']['totalCount']
-    raise Exception(owner + '/' + repo_name + ' could not be read')
+    return simple_request(get_specific_repo_stars.__name__, '/repos/' + owner + '/' + repo_name)['stargazers_count']
 
 
 def svg_overwrite(filename, age_data, repo_data, star_data):
@@ -207,8 +160,10 @@ if __name__ == '__main__':
     print('Calculation times:')
     age_data, age_time = perf_counter(daily_readme, datetime.datetime(2002, 12, 23))
     formatter('age calculation', age_time)
-    star_data, star_time = perf_counter(graph_repos_stars, 'stars', ['OWNER'])
-    formatter('star count', star_time)
+    repos, repo_time = perf_counter(public_repos, USER_NAME)
+    formatter('public repos', repo_time)
+    repo_data = len(repos)
+    star_data = stars_counter(repos)
 
     try:
         nocturne_image_stars = get_specific_repo_stars('usenocturne', 'nocturne-image')
@@ -224,13 +179,10 @@ if __name__ == '__main__':
     if star_data is None:
         print('   Star count is incomplete, keeping the previous value. See the warnings above.')
 
-    repo_data, repo_time = perf_counter(graph_repos_stars, 'repos', ['OWNER'])
-    formatter('repo count', repo_time)
-
     svg_overwrite('dark_mode.svg', age_data, repo_data, star_data)
     svg_overwrite('light_mode.svg', age_data, repo_data, star_data)
 
-    print('{:<21}'.format('Total function time:'), '{:>11}'.format('%.4f' % (age_time + star_time + repo_time)), ' s', sep='')
+    print('{:<21}'.format('Total function time:'), '{:>11}'.format('%.4f' % (age_time + repo_time)), ' s', sep='')
 
-    print('Total GitHub GraphQL API calls:', '{:>3}'.format(sum(QUERY_COUNT.values())))
+    print('Total GitHub REST API calls:', '{:>6}'.format(sum(QUERY_COUNT.values())))
     for funct_name, count in QUERY_COUNT.items(): print('{:<28}'.format('   ' + funct_name + ':'), '{:>6}'.format(count))
