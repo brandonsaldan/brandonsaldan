@@ -15,10 +15,11 @@ import sys
 from PIL import Image, ImageFilter
 import numpy as np
 
-FONT_PX = 12               # art font size; line height matches it
-RAMP = ' .-+#'             # sparse -> dense
-BLUR_PX = 3                # softens the outline and skin texture
-CONTRAST_PERCENT = 60      # gentle local contrast so the eyes and mouth still read
+FONT_PX = 9                # art font size; line height matches it
+RAMP = ' .:-=+#'           # sparse -> dense
+BLUR_PX = 2                # softens the outline and skin texture
+CONTRAST_PERCENT = 70      # gentle local contrast so the eyes and mouth still read
+FLATTEN_LIGHTING = 0.8     # 0-1, evens out broad shadows (e.g. one side of the face) so features stand out
 ART_WIDTH, ART_HEIGHT = 420, 500  # space left of the info column, in px
 CARDS = ['dark_mode.svg', 'light_mode.svg']
 
@@ -41,6 +42,13 @@ def to_ascii(path):
     background = np.asarray(im).min(2) >= 250
     halo = (np.asarray(im.convert('L')) >= 225) & ~background  # white fringe left by the cut-out
     gray = im.convert('L').filter(ImageFilter.GaussianBlur(BLUR_PX))
+    if FLATTEN_LIGHTING:
+        # subtract the broad lighting, estimated with the background filled in so edges don't skew it
+        g = np.asarray(gray).astype(float)
+        filled = np.where(background, g[~background].mean(), g)
+        lighting = np.asarray(Image.fromarray(filled.astype(np.uint8)).filter(ImageFilter.GaussianBlur(60))).astype(float)
+        g = np.clip(g - FLATTEN_LIGHTING * (lighting - lighting[~background].mean()), 0, 255)
+        gray = Image.fromarray(g.astype(np.uint8))
     gray = gray.filter(ImageFilter.UnsharpMask(radius=40, percent=CONTRAST_PERCENT, threshold=0))
     g = np.asarray(gray).astype(float)
 
