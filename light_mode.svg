@@ -46,7 +46,7 @@ text, tspan {white-space: pre;}
 <g transform="translate(0, 0)">
 <text x="390" y="30" fill="#24292f">
 <tspan x="390" y="30">brandon@saldan</tspan> -————————————————————————————————————————————
-<tspan x="390" y="90" class="cc">. </tspan><tspan class="key">Uptime</tspan>:<tspan class="cc" id="age_data_dots"> ...................... </tspan><tspan class="value" id="age_data">23 years, 10 months, 2 days</tspan>
+<tspan x="390" y="90" class="cc">. </tspan><tspan class="key">Uptime</tspan>:<tspan class="cc" id="age_data_dots"> ...................... </tspan><tspan class="value" id="age_data">23 years, 10 months, 3 days</tspan>
 <tspan x="390" y="70" class="cc">. </tspan><tspan class="key">Kernel</tspan>:<tspan class="cc"> ............. </tspan><tspan class="value">Technology, Data &amp; Business Strategy</tspan>
 <tspan x="390" y="50" class="cc">. </tspan><tspan class="key">Host</tspan>:<tspan class="cc"> ..................... </tspan><tspan class="value">Apple, Support College Program</tspan>
 <tspan x="390" y="110" class="cc">. </tspan><tspan class="key">Studying</tspan>:<tspan class="cc"> ........ </tspan><tspan class="value">MIS + Business Analytics, UNC Charlotte</tspan>
